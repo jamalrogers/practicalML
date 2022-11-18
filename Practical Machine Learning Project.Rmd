@@ -110,7 +110,7 @@ data_rf %>%
 
 
 <br>
-**Testing the model using the testing dataset**
+**Predicting the testing dataset**
 ```{r}
 predict(data_rf, testing)
 ```
