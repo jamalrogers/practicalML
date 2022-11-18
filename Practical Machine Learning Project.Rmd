@@ -1,0 +1,126 @@
+---
+title: "Practical Machine Learning Project"
+output: html_document
+author: Jamal Rogers
+date: "2022-11-18"
+---
+
+*Using the Tidymodels package*
+
+### **INTRODUCTION**
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, the goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here:
+<br>
+
+http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har
+<br>
+(see the section on the Weight Lifting Exercise Dataset).
+
+### **OBJECTIVE**
+The goal of the project is to predict the manner in which the 6 participants did the exercise. This is the "classe" variable in the training set.
+
+<hr>
+**Load the Training and Testing Datasets**
+```{r}
+training <- read.csv("pml-training.csv")
+testing <- read.csv("pml-testing.csv")
+```
+```{r}
+dim(training)
+dim(testing)
+```
+Both training and tesing datasets have 160 variables.
+
+
+<br>
+**Load the Machine Learning Package**
+```{r}
+library(tidymodels)
+```
+<br>
+**Load the Data Transformation Package**
+```{r}
+library(tidyverse)
+```
+<br>
+**Data Cleaning and Wrangling**
+```{r}
+training <- training[, colSums(is.na(training))==0]
+training <- training[, -c(1:7)]
+classe <- as.factor(training$classe)
+training <- training[,sapply(training, is.numeric)]
+training <- data.frame(training, classe)
+```
+<br>
+**Response Variable Analysis**
+```{r}
+ggplot(data=training) +
+        geom_bar(mapping=aes(classe, fill=classe))
+```
+<br>
+Classification of 5 classes is shown in the plot above. Classe A higher than the rest of the 4 classes but prediction can proceed due to the high number of observations.
+
+
+<br>
+**Data Preprocessing**
+```{r}
+# Splitting the original training data into new training data and testing sets.
+data_split <- initial_split(data=training, prop=0.7)
+
+# Preprocessing
+training_recipe <- training(data_split) %>%
+        recipe(classe ~.) %>%
+        step_corr(all_predictors()) %>%
+        prep()
+training_recipe
+
+#preprocess testing data
+data_testing <- training_recipe %>%
+        bake(testing(data_split))
+
+#load training data
+data_training <- juice(training_recipe)
+
+```
+<br>
+**Model Training using Random Forest**
+```{r}
+data_rf <- rand_forest(trees = 100, mode="classification") %>%
+        set_engine("randomForest") %>%
+        fit(classe ~., data=data_training)
+data_rf
+```
+<br>
+**Prediction**
+```{r}
+predict(data_rf, data_testing)
+```
+<br>
+**Validation**
+```{r}
+data_rf %>%
+        predict(data_testing) %>%
+        bind_cols(data_testing) %>%
+        metrics(truth=classe, estimate=.pred_class)
+```
+
+
+<br>
+**THE MODEL IS 99% ACCURATE**
+
+
+<br>
+**Testing the model using the testing dataset**
+```{r}
+predict(data_rf, testing)
+```
+
+
+
+
+<hr>
+![](images/thedatasamurai.png)
+
+
+
+<br>
