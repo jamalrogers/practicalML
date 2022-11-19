@@ -22,8 +22,8 @@ The goal of the project is to predict the manner in which the 6 participants did
 <hr>
 **Load the Training and Testing Datasets**
 ```{r}
-training <- read.csv("pml-training.csv")
-testing <- read.csv("pml-testing.csv")
+training <- read.csv("pml-training.csv")   #main data for this project
+testing <- read.csv("pml-testing.csv")   #will be used to predict 20 observations.
 ```
 ```{r}
 dim(training)
@@ -38,7 +38,7 @@ Both training and tesing datasets have 160 variables.
 library(tidymodels)
 ```
 <br>
-**Load the Data Transformation Package**
+**Load the Tidyverse Package for data visualization**
 ```{r}
 library(tidyverse)
 ```
@@ -51,6 +51,8 @@ classe <- as.factor(training$classe)
 training <- training[,sapply(training, is.numeric)]
 training <- data.frame(training, classe)
 ```
+Columns with NA and unwanted(non-numerical) values are removed. The resulting dataset now contains only 53 columns from 160.
+
 <br>
 **Response Variable Analysis**
 ```{r}
@@ -63,6 +65,8 @@ Classification of 5 classes is shown in the plot above. Classe A higher than the
 
 <br>
 **Data Preprocessing**
+<br>
+Training data is split into new training and testing sets. Preprocessing is done on all predictors removing the variables with large absolute correlations with other variables. The same is done to both the splitted datasets.
 ```{r}
 # Splitting the original training data into new training data and testing sets.
 data_split <- initial_split(data=training, prop=0.7)
@@ -84,19 +88,27 @@ data_training <- juice(training_recipe)
 ```
 <br>
 **Model Training using Random Forest**
+<br>
+The prediction algorithm of choice is the random forest for classification. 
 ```{r}
 data_rf <- rand_forest(trees = 100, mode="classification") %>%
         set_engine("randomForest") %>%
         fit(classe ~., data=data_training)
 data_rf
 ```
+As shown, 100 tress are used and 6 variable are tried in each split. The Out Of Bag estimate error rate is very small at 0.76%. A confusion matrix is shown above.
+
 <br>
 **Prediction**
+<br>
+The predict() command is used for prediction. Arguments include the model and the splitted testing dataset.
 ```{r}
 predict(data_rf, data_testing)
 ```
 <br>
 **Validation**
+<br>
+Validation is done using the metrics() function where the truth argument corresponds to the response variable class and the estimate argument correspond to the predicted values. This step outputs the accuracy and kappa metrics as shown.
 ```{r}
 data_rf %>%
         predict(data_testing) %>%
@@ -111,6 +123,8 @@ data_rf %>%
 
 <br>
 **Predicting the testing dataset**
+<br>
+Using the original testing dataset, a prediction is done to produce 20 predicted values.
 ```{r}
 predict(data_rf, testing)
 ```
