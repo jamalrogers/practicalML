@@ -22,7 +22,7 @@ The goal of the project is to predict the manner in which the 6 participants did
 <hr>
 **Load the Training and Testing Datasets**
 ```{r}
-training <- read.csv("pml-training.csv")   #main data for this project
+training <- read.csv("pml-training.csv")   #main data for this project.
 testing <- read.csv("pml-testing.csv")   #will be used to predict 20 observations.
 ```
 ```{r}
@@ -66,7 +66,7 @@ Classification of 5 classes is shown in the plot above. Classe A higher than the
 <br>
 **Data Preprocessing**
 <br>
-Training data is split into new training and testing sets. Preprocessing is done on all predictors removing the variables with large absolute correlations with other variables. The same is done to both the splitted datasets.
+Training data is split into new training (70%) and testing sets (30%). Preprocessing is done on all predictors removing the variables with large absolute correlations with other variables. The same is done to both the splitted datasets.
 ```{r}
 # Splitting the original training data into new training data and testing sets.
 data_split <- initial_split(data=training, prop=0.7)
